@@ -400,6 +400,17 @@ type ReactServerAppProps = {
   ctx: AppRenderContext
   asNotFound: boolean
 }
+
+/**
+ * Crawlers will inadvertently think the canonicalUrl in the RSC payload should be crawled
+ * when our intention is to just seed the router state with the current URL.
+ * This function splits up the pathname so that we can later join it on
+ * when we're ready to consume the path.
+ */
+function prepareInitialCanonicalUrl(pathname: string) {
+  return pathname.split('/')
+}
+
 // This is the root component that runs in the RSC context
 async function ReactServerApp({ tree, ctx, asNotFound }: ReactServerAppProps) {
   // Create full component tree from root to leaf.
@@ -463,7 +474,7 @@ async function ReactServerApp({ tree, ctx, asNotFound }: ReactServerAppProps) {
       <AppRouter
         buildId={ctx.renderOpts.buildId}
         assetPrefix={ctx.assetPrefix}
-        initialCanonicalUrl={urlPathname}
+        initialUrlParts={prepareInitialCanonicalUrl(urlPathname)}
         // This is the router state tree.
         initialTree={initialTree}
         // This is the tree of React nodes that are seeded into the cache
@@ -552,7 +563,7 @@ async function ReactServerError({
     <AppRouter
       buildId={ctx.renderOpts.buildId}
       assetPrefix={ctx.assetPrefix}
-      initialCanonicalUrl={urlPathname}
+      initialUrlParts={prepareInitialCanonicalUrl(urlPathname)}
       initialTree={initialTree}
       initialHead={head}
       globalErrorComponent={GlobalError}
